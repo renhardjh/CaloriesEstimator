@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/ivPicture"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/daging"
+        android:layout_margin="16dp"/>
+
+    <TextView
+        android:id="@+id/tvFoodName"
+        android:layout_toRightOf="@id/ivPicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Daging"
+        android:layout_marginTop="16dp"
+        android:textSize="18dp"
+        android:layout_marginLeft="8dp"
+        android:textColor="@color/black"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvCalorie"
+        android:layout_toRightOf="@id/ivPicture"
+        android:layout_below="@id/tvFoodName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="288 kkal/g"
+        android:textSize="15dp"
+        android:layout_marginLeft="8dp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/edit_24px"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="16dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"/>
+
+</RelativeLayout>
