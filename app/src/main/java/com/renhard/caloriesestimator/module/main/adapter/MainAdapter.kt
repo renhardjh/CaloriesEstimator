@@ -1,10 +1,7 @@
 package com.renhard.caloriesestimator.module.main.adapter
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +10,7 @@ import com.renhard.caloriesestimator.databinding.CalorieRowBinding
 import com.renhard.caloriesestimator.module.camera.model.CaloriesTableModel
 import com.renhard.caloriesestimator.module.main.model.CaloriePredictModel
 
-class MainAdapter : PagingDataAdapter<CaloriePredictModel, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
+class MainAdapter(private val callback: MainAdapterCallback) : PagingDataAdapter<CaloriePredictModel, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
     private val VIEW_ITEM = 0
 
     companion object {
@@ -30,7 +27,7 @@ class MainAdapter : PagingDataAdapter<CaloriePredictModel, RecyclerView.ViewHold
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val itemHomeBinding = CalorieRowBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val viewHolder = ItemViewHolder(itemHomeBinding)
+        val viewHolder = ItemViewHolder(itemHomeBinding, callback)
         return viewHolder
     }
 
@@ -38,7 +35,7 @@ class MainAdapter : PagingDataAdapter<CaloriePredictModel, RecyclerView.ViewHold
         val holder = holder as ItemViewHolder
         val item = getItem(position)
         if (item != null) {
-            holder.bind(item)
+            holder.bind(item, position)
         }
     }
 
@@ -50,19 +47,32 @@ class MainAdapter : PagingDataAdapter<CaloriePredictModel, RecyclerView.ViewHold
         return snapshot().items.size
     }
 
-    class ItemViewHolder(private val binding: CalorieRowBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: CaloriePredictModel) {
+    class ItemViewHolder(private val binding: CalorieRowBinding, private val callback: MainAdapterCallback) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: CaloriePredictModel, position: Int) {
             with(binding) {
                 val context = tvFoodName.context
                 tvFoodName.text = item.foodName
-                tvCalorie.text = "${item.calorie} kkal/g"
+                if(item.weight > 1) {
+                    val totalCalorie = String.format("%.1f", item.calorie * item.weight)
+                    tvCalorie.text = "${item.weight} g • $totalCalorie kkal"
+                } else {
+                    tvCalorie.text = "${item.calorie} kkal/g"
+                }
 
                 Glide.with(context)
                     .load(CaloriesTableModel()
                     .getIconByClass(item.foodName))
                     .circleCrop()
                     .into(ivPicture)
+
+                btnEdit.setOnClickListener {
+                    callback.onEditWeight(position)
+                }
             }
         }
     }
+}
+
+interface MainAdapterCallback {
+    fun onEditWeight(position: Int)
 }

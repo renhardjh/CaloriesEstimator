@@ -16,6 +16,7 @@ cameraxVersion = '1.2.0-alpha02'
 windowVersion = '1.2.0-alpha02'
 pagingRuntimeKtx = "3.3.2"
 glideVersion = "4.16.0"
+mpAndroidChartVer = "v3.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +42,7 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 windows-manager = { group = "androidx.window", name = "window", version.ref = "windowVersion" }
 androidx-paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "pagingRuntimeKtx" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glideVersion" }
+mp-android-chart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpAndroidChartVer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

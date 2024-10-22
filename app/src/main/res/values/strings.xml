@@ -5,4 +5,9 @@
     <string name="gpu">GPU</string>
     <string name="gpu_acceleration">GPU Acceleration</string>
     <string name="total_calorie">Total Calorie</string>
+    <string name="login">LOGIN</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="remember">Remember</string>
+    <string name="email_atau_password_salah">Email atau password salah</string>
 </resources>

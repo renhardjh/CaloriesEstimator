@@ -70,7 +70,7 @@
                 android:src="@drawable/circle_24px"
                 android:layout_gravity="center_horizontal"
                 app:tint="@color/white"
-                android:layout_marginBottom="16dp"/>
+                android:layout_marginBottom="30dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -79,12 +79,30 @@
                 android:background="@drawable/bg_bottom_sheet"
                 android:padding="16dp">
 
-                <ImageView
-                    android:id="@+id/ivArrow"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_arrow_up"/>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/ivArrow"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_arrow_up"
+                        android:layout_centerInParent="true"/>
+
+                    <ImageView
+                        android:id="@+id/ivReCapture"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/autorenew_24px"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="20dp"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:visibility="gone"/>
+
+                </RelativeLayout>
 
                 <LinearLayout
                     android:paddingHorizontal="8dp"
@@ -118,9 +136,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Result"
+                    android:text="Kalori Makanan"
                     android:textSize="24dp"
                     android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:layout_centerHorizontal="true"
                     android:padding="12dp"/>
 
@@ -139,34 +158,10 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal">
 
-                        <ProgressBar
-                            android:id="@+id/progressBar"
-                            android:layout_width="150dp"
-                            android:layout_height="150dp"
-                            android:indeterminate="false"
-                            android:progressDrawable="@drawable/circular_progress_bar"
-                            android:background="@drawable/circle_shape"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:max="100"
-                            android:progress="65"/>
-
-                        <TextView
-                            android:id="@+id/totalCalorie"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="320 kkal/g"
-                            android:textSize="20dp"
-                            android:textStyle="bold"
-                            android:layout_centerHorizontal="true"
-                            android:layout_marginTop="50dp"/>
-
-                        <TextView
-                            android:layout_below="@id/totalCalorie"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/total_calorie"
-                            android:textSize="15dp"
-                            android:layout_centerHorizontal="true"/>
+                        <com.github.mikephil.charting.charts.PieChart
+                            android:id="@+id/pieChart"
+                            android:layout_width="200dp"
+                            android:layout_height="200dp" />
 
                     </RelativeLayout>
 
