@@ -7,5 +7,9 @@ data class BoundingBox(
     val y2: Float,
     val calorie: Int,
     val cls: Int,
-    val clsName: String
+    val clsName: String,
+    val cnf: Float,
+    val w: Float,
+    val h: Float,
+    val maskWeight: List<Float>
 )

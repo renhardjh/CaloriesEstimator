@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CaloriesEstimator"
 include(":app")
- 
+include(":opencv")

@@ -26,6 +26,7 @@ import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
@@ -46,25 +47,41 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.utils.MPPointF
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.renhard.caloriesestimator.R
 import com.renhard.caloriesestimator.animation.Animation.animateArrow
 import com.renhard.caloriesestimator.databinding.FragmentCameraBinding
 import com.renhard.caloriesestimator.module.camera.model.BoundingBox
+import com.renhard.caloriesestimator.module.camera.model.SegmentationResult
+import com.renhard.caloriesestimator.module.camera.model.Success
 import com.renhard.caloriesestimator.module.camera.viewmodel.CameraViewModel
 import com.renhard.caloriesestimator.module.main.adapter.MainAdapter
 import com.renhard.caloriesestimator.module.main.adapter.MainAdapterCallback
 import com.renhard.caloriesestimator.module.main.model.CaloriePredictModel
 import com.renhard.caloriesestimator.util.Constants.LABELS_PATH
 import com.renhard.caloriesestimator.util.Constants.MODEL_PATH
-import com.renhard.caloriesestimator.util.Detector
+import com.renhard.caloriesestimator.util.DetectorInstanceSegment
+import com.renhard.caloriesestimator.util.DrawImages
+import com.renhard.caloriesestimator.util.InstanceSegmentation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
+import org.opencv.core.CvType
+import org.opencv.core.Mat
+import org.opencv.core.MatOfInt
+import org.opencv.core.MatOfPoint
+import org.opencv.core.MatOfPoint2f
+import org.opencv.core.Point
+import org.opencv.core.Scalar
+import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgproc.Imgproc
 import java.util.Timer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.concurrent.schedule
 
 
-class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelectedListener,
+class CameraFragment : Fragment(), DetectorInstanceSegment.DetectorListener, OnChartValueSelectedListener,
     MainAdapterCallback {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
@@ -74,12 +91,13 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var detector: Detector? = null
+    private var detector: DetectorInstanceSegment? = null
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var mainAdapter: MainAdapter
     var viewModel = CameraViewModel()
     private lateinit var pieChart: PieChart
     private var isResultState = false
+    private var instanceSegmentation: InstanceSegmentation? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
@@ -96,7 +114,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
-            detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
+            detector = DetectorInstanceSegment(requireContext(), MODEL_PATH, LABELS_PATH ?: "", this) {
                 toast(it)
             }
         }
@@ -117,6 +135,19 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         setupChart()
 
         bindListeners()
+
+        instanceSegmentation = InstanceSegmentation(
+            context = requireContext(),
+            modelPath = MODEL_PATH,
+            labelPath = LABELS_PATH
+        ) {
+            toast(it)
+        }
+
+//        if (OpenCVLoader.initLocal()) {
+//            Log.i("OpenCV", "OpenCV successfully loaded.")
+//            getContourArea()
+//        }
     }
 
     private fun bindListeners() {
@@ -160,33 +191,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
             .build()
 
         imageAnalyzer?.setAnalyzer(cameraExecutor) { imageProxy ->
-            val bitmapBuffer =
-                Bitmap.createBitmap(
-                    imageProxy.width,
-                    imageProxy.height,
-                    Bitmap.Config.ARGB_8888
-                )
-            imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
-            imageProxy.close()
-
-            val matrix = Matrix().apply {
-                postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-                if (isFrontCamera) {
-                    postScale(
-                        -1f,
-                        1f,
-                        imageProxy.width.toFloat(),
-                        imageProxy.height.toFloat()
-                    )
-                }
-            }
-
-            val rotatedBitmap = Bitmap.createBitmap(
-                bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,
-                matrix, true
-            )
-
+            val rotatedBitmap = getBitmapFromImageProxy(imageProxy)
             detector?.detect(rotatedBitmap)
         }
 
@@ -204,7 +209,30 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         } catch(exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
+    }
 
+    private fun processSuccessResult(original: Bitmap, success: Success) {
+        val drawImages = DrawImages(requireContext())
+        val images = drawImages.invoke(
+            original = original,
+            success = success,
+            isSeparateOut = false,
+            isMaskOut = false
+        )
+
+        requireActivity().runOnUiThread {
+            binding.ivImage.visibility = View.VISIBLE
+            binding.ivImage.setImageBitmap(images.firstOrNull()?.second!!)
+        }
+
+    }
+
+    private fun clearOutput(error: String) {
+        requireActivity().runOnUiThread {
+            binding.ivImage.visibility = View.GONE
+            binding.ivImage.setImageBitmap(null)
+            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -256,17 +284,17 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         }
     }
 
-    override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
+    override fun onDetect(segmentResult: List<SegmentationResult>, inferenceTime: Long) {
         requireActivity().runOnUiThread {
             binding.inferenceTime.text = "${inferenceTime}ms"
             binding.overlay.apply {
-                setResults(boundingBoxes)
+                setResults(segmentResult)
                 invalidate()
             }
         }
 
-        viewModel.predictList = boundingBoxes
-            .map { CaloriePredictModel(it.clsName, it.calorie, 1f) }
+        viewModel.predictList = segmentResult
+            .map { CaloriePredictModel(it.box.clsName, it.box.calorie, 1f) }
             .groupBy { it.foodName }
             .values
             .map {
@@ -313,6 +341,17 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         }
 
         binding.btnCapture.setOnClickListener {
+            requireActivity().runOnUiThread {
+                val rotatedBitmap = binding.viewFinder.bitmap!!
+
+                instanceSegmentation?.invoke(
+                    frame = rotatedBitmap,
+                    smoothEdges = true,
+                    onSuccess = { processSuccessResult(rotatedBitmap, it) },
+                    onFailure = { clearOutput(it) }
+                )
+            }
+
             reloadData()
             binding.btnCapture.visibility = View.GONE
             binding.ivReCapture.visibility = View.VISIBLE
@@ -467,5 +506,83 @@ class CameraFragment : Fragment(), Detector.DetectorListener, OnChartValueSelect
         builder.setNegativeButton("Batalkan", { dialog, which -> dialog.cancel() })
 
         builder.show()
+    }
+
+    private fun getBitmapFromImageProxy(imageProxy: ImageProxy): Bitmap {
+        val bitmapBuffer =
+            Bitmap.createBitmap(
+                imageProxy.width,
+                imageProxy.height,
+                Bitmap.Config.ARGB_8888
+            )
+        imageProxy.use { bitmapBuffer.copyPixelsFromBuffer(imageProxy.planes[0].buffer) }
+        imageProxy.close()
+
+        val matrix = Matrix().apply {
+            postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
+
+            if (isFrontCamera) {
+                postScale(
+                    -1f,
+                    1f,
+                    imageProxy.width.toFloat(),
+                    imageProxy.height.toFloat()
+                )
+            }
+        }
+
+        val rotatedBitmap = Bitmap.createBitmap(
+            bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,
+            matrix, true
+        )
+
+        return rotatedBitmap
+    }
+
+    private fun getContourArea() {
+        //Reading the contents of the image
+        val src: Mat = Utils.loadResource(context, R.drawable.sampel_image4, Imgcodecs.IMREAD_GRAYSCALE)
+
+        //Converting the source image to binary
+        val gray = Mat(src.rows(), src.cols(), src.type())
+        Imgproc.adaptiveThreshold(src, gray, 125.0,
+            Imgproc.ADAPTIVE_THRESH_MEAN_C,
+            Imgproc.THRESH_BINARY, 11, 12.0);
+        val binary = Mat(src.rows(), src.cols(), src.type(), Scalar(0.0))
+        Imgproc.threshold(gray, binary, 100.0, 255.0, Imgproc.THRESH_BINARY_INV)
+
+        //Finding Contours
+        val contours: List<MatOfPoint> = ArrayList()
+        val hierarchey = Mat()
+        Imgproc.findContours(
+            binary, contours, hierarchey, Imgproc.RETR_TREE,
+            Imgproc.CHAIN_APPROX_SIMPLE
+        )
+        val draw = Mat.zeros(src.size(), CvType.CV_8UC3)
+        for (i in contours.indices) {
+            var color = Scalar(0.0, 0.0, 255.0)
+            //Calculating the area
+            val thisContour2f = MatOfPoint2f()
+            val approxContour2f = MatOfPoint2f()
+            val hull = MatOfInt()
+
+            val cont_area = Imgproc.contourArea(contours[i])
+            Log.d("Contour Area:", "$cont_area")
+            if (cont_area > 5000.0) {
+                Imgproc.drawContours(
+                    draw, contours, i, color, 2,
+                    Imgproc.LINE_8, hierarchey, 2, Point()
+                )
+            } else {
+                color = Scalar(255.0, 255.0, 255.0)
+                Imgproc.drawContours(
+                    draw, contours, i, color, 2, Imgproc.LINE_8,
+                    hierarchey, 2, Point()
+                )
+            }
+        }
+        val bmp = Bitmap.createBitmap(draw.cols(), draw.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(draw, bmp)
+        binding.ivImage.setImageBitmap(bmp)
     }
 }

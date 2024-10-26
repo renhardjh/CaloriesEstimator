@@ -1,6 +1,9 @@
 package com.renhard.caloriesestimator.module.main.view
 
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -11,6 +14,8 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.renhard.caloriesestimator.R
 import com.renhard.caloriesestimator.databinding.ActivityMainBinding
+import org.opencv.android.OpenCVLoader
+
 
 class MainActivity: AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -34,9 +39,7 @@ class MainActivity: AppCompatActivity() {
 
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
-
     }
-
 
     private fun setStatusBarColor(color: Int) {
         window?.statusBarColor = ContextCompat.getColor(baseContext, color)

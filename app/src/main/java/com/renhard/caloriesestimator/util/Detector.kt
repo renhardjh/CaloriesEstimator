@@ -149,7 +149,8 @@ class Detector(
                 boundingBoxes.add(
                     BoundingBox(
                         x1 = x1, y1 = y1, x2 = x2, y2 = y2,
-                        calorie = calorie, cls = cls, clsName = clsName
+                        calorie = calorie, cls = cls, clsName = clsName, cnf = cnf,
+                        w = 0f, h = 0f, maskWeight = emptyList()
                     )
                 )
             }
