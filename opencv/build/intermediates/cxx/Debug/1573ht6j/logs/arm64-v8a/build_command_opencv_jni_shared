@@ -1,0 +1,4 @@
+/Users/macbook/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -C \
+  /Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator/opencv/.cxx/Debug/1573ht6j/arm64-v8a \
+  opencv_jni_shared

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.renhard.caloriesestimator.module.camera.view.CameraFragment"
+        android:name="com.renhard.caloriesestimator.module.sharedcamera.view.SharedCameraFragment"
         android:label="fragment_camera"
         tools:layout="@layout/fragment_camera" />
 </navigation>

@@ -25,6 +25,17 @@ class CaloriesTableModel {
         "Sayur" to R.drawable.sayur
     )
 
+    val foodHeight = hashMapOf(
+        "Nasi" to 3,
+        "Ayam" to 3,
+        "Daging" to 2,
+        "Ikan" to 2,
+        "Tahu" to 1,
+        "Telur" to 1,
+        "Tempe" to 1,
+        "Sayur" to 1
+    )
+
     fun getCalorieByClass(cls: String): Int {
         val value = foodTable[cls] ?: 0
         return value
@@ -32,6 +43,11 @@ class CaloriesTableModel {
 
     fun getIconByClass(cls: String): Int {
         val value = imageTable[cls] ?: 0
+        return value
+    }
+
+    fun getHeightByClass(cls: String): Int {
+        val value = foodHeight[cls] ?: 0
         return value
     }
 }

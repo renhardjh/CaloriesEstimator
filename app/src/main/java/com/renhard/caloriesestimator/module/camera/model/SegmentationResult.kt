@@ -2,7 +2,8 @@ package com.renhard.caloriesestimator.module.camera.model
 
 data class SegmentationResult(
     val box: BoundingBox,
-    val mask: Array<IntArray>
+    val mask: Array<IntArray>,
+    var weight: Float = 1f
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

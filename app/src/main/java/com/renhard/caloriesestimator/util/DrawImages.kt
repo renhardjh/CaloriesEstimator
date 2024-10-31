@@ -8,8 +8,10 @@ import android.graphics.Paint
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.renhard.caloriesestimator.R
+import com.renhard.caloriesestimator.module.camera.model.DrawImagesResult
 import com.renhard.caloriesestimator.module.camera.model.SegmentationResult
 import com.renhard.caloriesestimator.module.camera.model.Success
+import com.renhard.caloriesestimator.util.ImageUtils.pxAreaToCm
 import com.renhard.caloriesestimator.util.ImageUtils.pxToCm
 
 class DrawImages(private val context: Context) {
@@ -30,33 +32,54 @@ class DrawImages(private val context: Context) {
         return color
     }
 
-    fun invoke(original: Bitmap, success: Success, isSeparateOut: Boolean, isMaskOut: Boolean) : List<Pair<Bitmap, Bitmap?>> {
+    fun invoke(original: Bitmap, success: Success, isSeparateOut: Boolean, isMaskOut: Boolean) : DrawImagesResult {
         if (isSeparateOut) {
              if (isMaskOut) {
-                 return success.results.map { Pair(maskOut(original, it.mask), null) }
+                 val result = DrawImagesResult(
+                     success.results.map { Pair(maskOut(original, it.mask), null) },
+                     emptyList()
+                 )
+                 return result
             } else {
                 val results = success.results
                 if (results.isEmpty()) {
-                    return emptyList()
+                    val result = DrawImagesResult(
+                        emptyList(),
+                        emptyList()
+                    )
+                    return result
                 }
 
                 val width = results.first().mask[0].size
                 val height = results.first().mask.size
+                 val listArea = mutableListOf<Float>()
 
-                return success.results.map {
-                    val new = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    applyTransparentOverlay(context, new, it, R.color.overlay_pink)
-                    Pair(original, new)
-                }
+                 val result = DrawImagesResult(
+                     success.results.map {
+                         val new = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                         listArea += applyTransparentOverlay(context, new, it, R.color.overlay_pink)
+                         Pair(original, new)
+                     },
+                     listArea
+                 )
+                return result
             }
         } else {
             if (isMaskOut) {
                 val list = success.results.map { it.mask }.toTypedArray()
-                return listOf(Pair(maskOut(original, list.combineMasks()), null))
+                val result = DrawImagesResult(
+                    listOf(Pair(maskOut(original, list.combineMasks()), null)),
+                    emptyList()
+                )
+                return result
             } else {
                 val results = success.results
                 if (results.isEmpty()) {
-                    return emptyList()
+                    val result = DrawImagesResult(
+                        emptyList(),
+                        emptyList()
+                    )
+                    return result
                 }
 
                 val colorPairs: MutableMap<Int, Int> = mutableMapOf()
@@ -68,11 +91,16 @@ class DrawImages(private val context: Context) {
                 val height = results.first().mask.size
 
                 val combined = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val listArea = mutableListOf<Float>()
 
                 results.forEach {
-                    applyTransparentOverlay(context, combined, it, colorPairs[it.box.cls] ?: R.color.overlay_red)
+                    listArea += applyTransparentOverlay(context, combined, it, colorPairs[it.box.cls] ?: R.color.overlay_red)
                 }
-                return listOf(Pair(original, combined))
+                val result = DrawImagesResult(
+                    listOf(Pair(original, combined)),
+                    listArea
+                )
+                return result
             }
         }
     }
@@ -127,7 +155,8 @@ class DrawImages(private val context: Context) {
         return result
     }
 
-    private fun applyTransparentOverlay(context: Context, overlay: Bitmap, segmentationResult: SegmentationResult, overlayColorResId: Int) {
+    private fun applyTransparentOverlay(context: Context, overlay: Bitmap, segmentationResult: SegmentationResult, overlayColorResId: Int)
+    : Float {
         val width = overlay.width
         val height = overlay.height
 
@@ -143,7 +172,8 @@ class DrawImages(private val context: Context) {
                 }
             }
         }
-        Log.d("AreaX ${segmentationResult.box.clsName}:", "${area.pxToCm(context)} cm")
+        Log.d("AreaX ${segmentationResult.box.clsName}:", "${area.pxAreaToCm(context)} cm")
+        return area.pxAreaToCm(context)
 
 //        val canvas = Canvas(overlay)
 //

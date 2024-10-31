@@ -18,6 +18,7 @@ pagingRuntimeKtx = "3.3.2"
 glideVersion = "4.16.0"
 mpAndroidChartVer = "v3.1.0"
 arCoreVersion = "1.46.0"
+deJavaGLVersion = "0.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +46,7 @@ androidx-paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtim
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glideVersion" }
 mp-android-chart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpAndroidChartVer" }
 google-arcore = { group = "com.google.ar", name = "core", version.ref = "arCoreVersion" }
+de-javagl = { group = "de.javagl", name = "obj", version.ref = "deJavaGLVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

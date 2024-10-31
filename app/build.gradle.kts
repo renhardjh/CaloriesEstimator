@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.windows.manager)
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.google.arcore)
+    implementation(libs.de.javagl)
 
     implementation(project(":opencv"))
 

@@ -105,9 +105,21 @@ object ImageUtils {
         }
     }
 
+    fun Int.pxAreaToCm(context: Context): Float {
+        val dm = context.resources.displayMetrics
+        val cm = (this / (dm.densityDpi.toDouble().pow(2))) * 2.54.pow(2)
+        return cm.toFloat()
+    }
+
     fun Int.pxToCm(context: Context): Float {
         val dm = context.resources.displayMetrics
-        val cm = (this / (dm.densityDpi.toDouble().pow(2))) * 2.54f
+        val cm = (this / dm.densityDpi.toDouble()) * 2.54
         return cm.toFloat()
+    }
+
+    fun Int.pxToMm(context: Context): Float {
+        val dm = context.resources.displayMetrics
+        val cm = (this / dm.densityDpi.toDouble()) * 2.54
+        return cm.toFloat() * 10
     }
 }

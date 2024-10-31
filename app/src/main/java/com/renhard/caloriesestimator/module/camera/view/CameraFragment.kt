@@ -218,7 +218,7 @@ class CameraFragment : Fragment(), DetectorInstanceSegment.DetectorListener, OnC
             success = success,
             isSeparateOut = false,
             isMaskOut = false
-        )
+        ).bitmapSegmentation
 
         requireActivity().runOnUiThread {
             binding.ivImage.visibility = View.VISIBLE
@@ -273,7 +273,7 @@ class CameraFragment : Fragment(), DetectorInstanceSegment.DetectorListener, OnC
     companion object {
         private const val TAG = "Camera"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = mutableListOf (
+        private val REQUIRED_PERMISSIONS = mutableListOf(
             Manifest.permission.CAMERA
         ).toTypedArray()
     }

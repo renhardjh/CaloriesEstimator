@@ -52,12 +52,10 @@ class MainAdapter(private val callback: MainAdapterCallback) : PagingDataAdapter
             with(binding) {
                 val context = tvFoodName.context
                 tvFoodName.text = item.foodName
-                if(item.weight > 1) {
-                    val totalCalorie = String.format("%.1f", item.calorie * item.weight)
-                    tvCalorie.text = "${item.weight} g • $totalCalorie kkal"
-                } else {
-                    tvCalorie.text = "${item.calorie} kkal/g"
-                }
+                val totalCalorie = item.calorie.toFloat() * item.weight / 1000f
+                val totalCalorieFormatted = String.format("%.2f", totalCalorie)
+                val weightFormatted = String.format("%.2f", item.weight)
+                tvCalorie.text = "${weightFormatted} g • $totalCalorieFormatted kkal"
 
                 Glide.with(context)
                     .load(CaloriesTableModel()
