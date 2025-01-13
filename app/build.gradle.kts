@@ -9,6 +9,8 @@ android {
 
     defaultConfig {
         applicationId = "com.renhard.caloriesestimator"
+        testApplicationId = "com.renhard.caloriesestimator.tests"
+        testInstrumentationRunner = "com.renhard.caloriesestimator.TestRunner"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -31,6 +33,9 @@ android {
         create("customDebugType") {
             isDebuggable = true
         }
+        debug {
+            enableUnitTestCoverage = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -46,6 +51,17 @@ android {
     }
     buildFeatures {
         viewBinding = true
+    }
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+        }
+    }
+    sourceSets {
+        getByName("androidTest").assets.srcDirs("src/androidTest/assets")
+        getByName("test").resources.srcDirs("src/test/resources")
     }
 }
 
@@ -77,8 +93,20 @@ dependencies {
     implementation(libs.de.javagl)
 
     implementation(project(":opencv"))
+    implementation(libs.core.ktx)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.junit.ktx)
+    testImplementation(libs.roboelectric)
+    testImplementation(libs.androidx.espresso.core)
+//    androidTestImplementation(libs.mockito)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.jetbrain.stdlib)
+    testImplementation(libs.jetbrain.kotlin.test)
+    testImplementation(libs.jetbrain.kotlin.coroutines.cores)
+    testImplementation(libs.jetbrain.kotlin.coroutines.android)
+    testImplementation(kotlin("test"))
+
+    testRuntimeOnly(files("${projectDir}/../app/src/main/java/com/renhard/caloriesestimator/util/DetectorInstanceSegment.kt"))
 }

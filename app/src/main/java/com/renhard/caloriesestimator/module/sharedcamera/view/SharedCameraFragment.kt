@@ -143,9 +143,6 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
     private val pointCloudRenderer = PointCloudRenderer()
     private val anchorMatrix = FloatArray(16)
     private val DEFAULT_COLOR: FloatArray = floatArrayOf(0f, 0f, 0f, 0f)
-    private var distanceCm: Float = 0f
-    private var focalLength: Float = 0f
-    private var magnification: Float = 0f
     private val anchors = ArrayList<BlankAnchor>()
     private var isFinalResult = false
 
@@ -483,11 +480,7 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
                 }
             }
         areaSegmentation.forEachIndexed { index, it ->
-            val height = CaloriesTableModel().getHeightByClass(viewModel.predictList[index].foodName)
-            val realAreaSize = it * distanceCm / focalLength
-            val totalVolume = realAreaSize * 2 * height
-            viewModel.predictList[index].weight = totalVolume
-            Log.d("WeightX ${viewModel.predictList[index].foodName}:", "${totalVolume} cm3, ${height}, ${realAreaSize}")
+            viewModel.calculateCalorie(index, it)
         }
 
         requireActivity().runOnUiThread {
@@ -699,31 +692,25 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
             override fun onSlide(bottomSheet: View, slideOffset: Float) {}
         })
 
-        binding.llSheet.setOnClickListener {
-            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-            }
-        }
-
-//        binding.btnCapture.setOnClickListener {
-//            binding.ivImage.visibility = if(binding.ivImage.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-//        }
-//        binding.btnCapture.setOnClickListener {
-//            didCaptureResult()
+//        binding.llSheet.setOnClickListener {
+//            if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED) {
+//                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+//            }
 //        }
 
         binding.ivReCapture.setOnClickListener {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            binding.ivReCapture.visibility = View.GONE
+            binding.btnCapture.visibility = View.VISIBLE
+            bottomSheetBehavior.isDraggable = false
+            isResultState = false
+
             if (allPermissionsGranted()){
                 resumeCamera()
                 binding.ivImage.visibility = View.GONE
             } else {
                 requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
             }
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            binding.ivReCapture.visibility = View.GONE
-            binding.btnCapture.visibility = View.VISIBLE
-            bottomSheetBehavior.isDraggable = false
-            isResultState = false
         }
     }
 
@@ -765,7 +752,7 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
     }
 
     private fun setChartData() {
-        val totalCalorie = String.format("%.1f", viewModel.predictList.sumOf { it.calorie.toDouble() * it.weight.toDouble() })
+        val totalCalorie = String.format("%.1f", viewModel.predictList.sumOf { (it.calorie.toDouble() * it.weight.toDouble()) / 1000 })
         pieChart.setCenterText("$totalCalorie kkal\nTotal Kalori")
         val entries = ArrayList<PieEntry>()
 
@@ -942,14 +929,14 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
 
     private fun imageToBitmap(image: Image, newWidth: Int, newHeight: Int): Bitmap {
         val yuvToRgbConverter = YuvToRgbConverter(requireContext())
-        var bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-        yuvToRgbConverter.yuvToRgb(image, bitmap)
+        val original = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+        yuvToRgbConverter.yuvToRgb(image, original)
 
         val matrix = Matrix().apply {
             postRotate(displayRotationHelper.getCameraSensorToDisplayRotation(cameraId).toFloat())
         }
-        bitmap = Bitmap.createBitmap(
-            bitmap, 0, 0, bitmap.width, bitmap.height,
+        val bitmap = Bitmap.createBitmap(
+            original, 0, 0, original.width, original.height,
             matrix, true
         )
 
@@ -1199,17 +1186,17 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
                     val dz = startPose.tz() - endPose.tz()
 
                     // Compute the straight-line distance.
-                    distanceCm = sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat() * 100f
+                    viewModel.distanceCm = sqrt((dx * dx + dy * dy + dz * dz).toDouble()).toFloat() * 100f
                     // Count focal length in mm
                     val characteristics = cameraManager.getCameraCharacteristics(this.cameraId)
                     val sensorPhysicalSize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
                     val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE)
-                    focalLength = camera.imageIntrinsics.focalLength[0] * sensorPhysicalSize!!.width / sensorArraySize!!.width
-                    focalLength = focalLength * 10
+                    viewModel.focalLength = camera.imageIntrinsics.focalLength[0] * sensorPhysicalSize!!.width / sensorArraySize!!.width
+                    viewModel.focalLength = viewModel.focalLength * 10
                     val metrics = Resources.getSystem().displayMetrics
                     val imageW = metrics.widthPixels.pxToCm(requireContext())
-                    magnification = distanceCm * imageW / focalLength
-                    Log.d("MagnificationX:", "F: ${focalLength}, P: ${imageW}, W: ${magnification}")
+                    viewModel.magnification = viewModel.distanceCm * imageW / viewModel.focalLength
+                    Log.d("MagnificationX:", "F: ${viewModel.focalLength}, P: ${imageW}, W: ${viewModel.magnification}")
                     requireActivity().runOnUiThread {
                         didCaptureResult()
                     }
@@ -1308,7 +1295,7 @@ class SharedCameraFragment : Fragment(), DetectorInstanceSegment.DetectorListene
             detector?.detect(bitmap)
             instanceSegmentation?.invoke(
                 frame = bitmap,
-                smoothEdges = true,
+                smoothEdges = false,
                 onSuccess = { processSuccessResult(bitmap, it) },
                 onFailure = { clearOutput(it) }
             )

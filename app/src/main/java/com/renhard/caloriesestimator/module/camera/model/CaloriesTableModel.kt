@@ -26,14 +26,25 @@ class CaloriesTableModel {
     )
 
     val foodHeight = hashMapOf(
-        "Nasi" to 3,
-        "Ayam" to 3,
-        "Daging" to 2,
-        "Ikan" to 2,
-        "Tahu" to 1,
-        "Telur" to 1,
-        "Tempe" to 1,
-        "Sayur" to 1
+        "Nasi" to 3f,
+        "Ayam" to 1.5f,
+        "Daging" to 1.1f,
+        "Ikan" to 1.65f,
+        "Tahu" to 1.8f,
+        "Telur" to 0.8f,
+        "Tempe" to 0.8f,
+        "Sayur" to 0.5f
+    )
+
+    val foodDensity = hashMapOf(
+        "Nasi" to 0.87f,
+        "Ayam" to 1.04f,
+        "Daging" to 1.04f,
+        "Ikan" to 1.04f,
+        "Tahu" to 1.07f,
+        "Telur" to 0.93f,
+        "Tempe" to 0.7f,
+        "Sayur" to 0.77f
     )
 
     fun getCalorieByClass(cls: String): Int {
@@ -46,8 +57,8 @@ class CaloriesTableModel {
         return value
     }
 
-    fun getHeightByClass(cls: String): Int {
-        val value = foodHeight[cls] ?: 0
+    fun getHeightByClass(cls: String): Float {
+        val value = foodHeight[cls] ?: 0f
         return value
     }
 }

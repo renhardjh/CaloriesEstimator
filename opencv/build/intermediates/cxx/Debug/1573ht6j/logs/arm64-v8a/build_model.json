@@ -10,7 +10,7 @@
   },
   "cxxBuildFolder": "/Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator/opencv/.cxx/Debug/1573ht6j/arm64-v8a",
   "soFolder": "/Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator/opencv/build/intermediates/cxx/Debug/1573ht6j/obj/arm64-v8a",
-  "soRepublishFolder": "/Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator/opencv/build/intermediates/cmake/debug/obj/arm64-v8a",
+  "soRepublishFolder": "/Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator/opencv/build/intermediates/cmake/customDebugType/obj/arm64-v8a",
   "abiPlatformVersion": 21,
   "cmake": {
     "effectiveConfiguration": {
@@ -24,10 +24,13 @@
     ],
     "cFlagsList": [],
     "cppFlagsList": [],
-    "variantName": "debug",
+    "variantName": "customDebugType",
     "isDebuggableEnabled": true,
     "validAbiList": [
-      "arm64-v8a"
+      "armeabi-v7a",
+      "arm64-v8a",
+      "x86",
+      "x86_64"
     ],
     "buildTargetSet": [
       "opencv_jni_shared"
@@ -144,7 +147,6 @@
         "rootBuildGradleFolder": "/Users/macbook/Documents/Project/Assesment/CaloriesEstimator-main/CaloriesEstimator",
         "sdkFolder": "/Users/macbook/Library/Android/sdk",
         "isBuildOnlyTargetAbiEnabled": true,
-        "ideBuildTargetAbi": "arm64-v8a,armeabi-v7a,armeabi",
         "isCmakeBuildCohabitationEnabled": false,
         "isPrefabEnabled": false
       },

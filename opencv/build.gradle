@@ -99,6 +99,7 @@ println "OpenCV: " +openCVersionName + " " + project.buildscript.sourceFile
 android {
     namespace 'org.opencv'
     compileSdkVersion 34
+    defaultPublishConfig "debug"
 
     defaultConfig {
         minSdkVersion 21
@@ -125,6 +126,11 @@ android {
             packagingOptions {
                 doNotStrip '**/*.so'  // controlled by OpenCV CMake scripts
             }
+        }
+        customDebugType {
+            versionNameSuffix openCVersionName
+            debuggable true
+            jniDebuggable true
         }
         release {
             packagingOptions {

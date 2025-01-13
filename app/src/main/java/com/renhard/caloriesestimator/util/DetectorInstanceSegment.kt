@@ -27,7 +27,7 @@ class DetectorInstanceSegment(
     private val context: Context,
     private val modelPath: String,
     private val labelPath: String?,
-    private val detectorListener: DetectorListener,
+    var detectorListener: DetectorListener,
     private val message: (String) -> Unit
 ) {
     private var interpreter: Interpreter
